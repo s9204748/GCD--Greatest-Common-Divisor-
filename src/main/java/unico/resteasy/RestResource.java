@@ -22,8 +22,8 @@ import org.json.simple.JSONValue;
 @Produces(MediaType.APPLICATION_XML)
 public class RestResource {
 	
-	private static String DELIMETER = ";";
-	private static final String ESCAPED_DELIMTER = "%3B;";
+	private static String DELIMETER = ",";//;";
+	private static final String ESCAPED_DELIMTER = "%2C;";//%3B;";
 	private final static Logger LOGGER = Logger.getLogger(RestResource.class.getName());
 	private QueueService queueService = new QueueService();
 	private DatabaseService databaseService = new DatabaseService();
