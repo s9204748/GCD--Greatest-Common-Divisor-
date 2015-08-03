@@ -6,10 +6,14 @@ then run (integration) tests:
 
 mvn test
 
-http://localhost:8080/resteasy-queue/rest/push/22,31 will push onto default JBoss java:/queue/test
+http://localhost:8080/resteasy-queue/rest/push/22,31
 
+<<<<<<< HEAD
 http://localhost:8080/resteasy-queue/rest/list (will return JSON like: {"queueElements":[22,31,22,31,22,31]})
 
 SOAP tests in unico.gcd.SoapResourceTest
 REST tests in unico.gcd.RestResourceTest
 Both are deployed as part of Maven test goal
+=======
+http://localhost:8080/resteasy-queue/rest/list
+>>>>>>> parent of 555f63a... package refactor
