@@ -90,7 +90,7 @@ public class RestResource {
 				LOGGER.log(Level.SEVERE, e.getMessage());
 				return Response.ok("<status>failure with JMS: "+e.getMessage() +"</status>").build();
 			}
-			databaseService.add(value);
+			databaseService.add(value, DatabaseService.TABLE);
 		}		
 		LOGGER.log(Level.INFO, "pushed "+tokenCount+" values onto queue\n");
 		return Response.ok("<status>success: "+tokenCount +"</status>").build();

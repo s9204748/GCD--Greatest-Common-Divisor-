@@ -26,7 +26,8 @@ import javax.sql.DataSource;
 @Singleton
 public class DatabaseService {
 
-	private final static String TABLE = "QUEUE_HISTORY";
+	public final static String TABLE = "QUEUE_HISTORY";
+	public final static String GCD_TABLE = "GCD_TABLE";
 	//private static long primaryKey = 0L;
 	private DataSource cf;
 	private final static Logger LOGGER = Logger.getLogger(DatabaseService.class.getName());
@@ -35,8 +36,11 @@ public class DatabaseService {
 		try {
 			Context ic = new InitialContext();
 			cf = (DataSource) ic.lookup("java:jboss/datasources/ExampleDS");	
-			if (!tableExists()) {
-				createTable();
+			if (!tableExists(TABLE)) {
+				createTable(TABLE);
+			}
+			if (!tableExists(GCD_TABLE)) {
+				createTable(GCD_TABLE);
 			}			
 		} catch (Exception e) {
 			throw new RuntimeException(e);
@@ -47,11 +51,11 @@ public class DatabaseService {
 	 * @param value to be added to persistent store with incremented priamry key.
 	 * @return boolean result from {@link PreparedStatement#execute()} ie true <i>iff</i> success.
 	 */
-	public boolean add(String value) {
+	public boolean add(String value, String table) {
 		try {
 			Connection connection = cf.getConnection();
 			PreparedStatement pS = connection.prepareStatement("insert into " + 
-			TABLE + " (value) values (?)");
+			table + " (value) values (?)");
 			// pS.setLong(0, primaryKey++);
 			pS.setInt(1, Integer.valueOf(value));
 			boolean b = pS.execute();
@@ -68,35 +72,47 @@ public class DatabaseService {
 	 * No need for a primary key as data is only to reported as entered <i>only</i>
 	 * @throws SQLException for any reason table cannot be created.
 	 */
-	private void createTable() throws SQLException {
+	private void createTable(String table) throws SQLException {
 		Connection connection = cf.getConnection();
 		Statement s = connection.createStatement();
-		s.executeUpdate("create table " + TABLE + " (value number(3)) ");
+		s.executeUpdate("create table " + table + " (value number(3)) ");
 		connection.close();
-		LOGGER.info("Created " + TABLE + " in database.");
+		LOGGER.info("Created " + table + " in database.");
 	}
 
-	private boolean tableExists() throws SQLException {
+	private boolean tableExists(String table) throws SQLException {
 		Connection connection = cf.getConnection();
-		ResultSet rS = connection.getMetaData().getTables(null, null, TABLE, null);
-		boolean b = (rS.next() && rS.getString(3).equals(TABLE));
+		ResultSet rS = connection.getMetaData().getTables(null, null, table, null);
+		boolean b = (rS.next() && rS.getString(3).equals(table));
 		connection.close();
 		LOGGER.info("tableExists: " + b);
 		return b;
 	}
 
 	public List<Integer> getQueueAudit() throws SQLException {
+		return getAllRows(TABLE);
+	}
+	
+	public List<Integer> getGCDAudit() throws SQLException {
+		return getAllRows(GCD_TABLE);
+	}
+	
+	private List<Integer> getAllRows(String table) throws SQLException {
 		Connection connection = cf.getConnection();
-		if (!tableExists()) {
-			throw new SQLException(TABLE + " does not exist!");
+		if (!tableExists(table)) {
+			throw new SQLException(table + " does not exist!");
 		}
 		Statement s = connection.createStatement();
-		ResultSet rS = s.executeQuery("select value from " + TABLE);
+		ResultSet rS = s.executeQuery("select value from " + table);
 		List<Integer> list = new ArrayList<Integer>();
 		while (rS.next()) {
 			list.add(new Integer(rS.getInt(1)));
 		}
 		connection.close();
 		return list;
+	}
+
+	public void addGCD(int k) {
+		add(String.valueOf(k), GCD_TABLE);		
 	}
 }
