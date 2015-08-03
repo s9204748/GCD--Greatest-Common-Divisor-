@@ -11,7 +11,7 @@
 	</servlet>
 	<servlet>
 		<servlet-name>SoapResource</servlet-name>
-		<servlet-class>unico.resteasy.SoapResourceImpl</servlet-class>
+		<servlet-class>unico.gcd.SoapResourceImpl</servlet-class>
 	</servlet>
 	<servlet-mapping>
 		<servlet-name>Resteasy</servlet-name>
