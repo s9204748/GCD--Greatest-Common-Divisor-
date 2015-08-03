@@ -17,9 +17,17 @@ import javax.naming.InitialContext;
 import javax.sql.DataSource;
 
 /**
- * ORM (Database) Service. Very simple, one table, one column inserts so 
- * implementation using embedded JBoss H2 implementation (for now) and basic
- * <code>javax.sql<code> API.
+ * <li>ORM (Database) Service. Very simple, one table, one column inserts so 
+ * implementation using embedded JBoss H2 implementation (for now) and basic.
+ * The core JDBC components are referenced as single member variables 
+ * per instance of this service. The service <b>should not be</b> shared between clients 
+ * for that reason; rather new instances created.
+ * 
+ * <b>Note:</b>Primary keys are <i>not</i> used due to the specific nature of the business logic, 
+ * ie order is kept by insertion and is never altered from the first in last out workflow.
+ * 
+ * <li>Due to the simplistic nature of the implementation, it was decided an ORM like Hibernate 
+ * or Spring wasn't required.
  * @author K. Flattery
  */
 @Startup
@@ -32,6 +40,9 @@ public class DatabaseService {
 	private DataSource cf;
 	private final static Logger LOGGER = Logger.getLogger(DatabaseService.class.getName());
 	
+	/**
+	 * Constructor; creates tables if they aren't in existance.
+	 */
 	public DatabaseService() {
 		try {
 			Context ic = new InitialContext();
@@ -89,10 +100,12 @@ public class DatabaseService {
 		return b;
 	}
 
+	/** @return full lists if integers as they are ordered in the database */
 	public List<Integer> getQueueAudit() throws SQLException {
 		return getAllRows(TABLE);
 	}
 	
+	/** @return full lists if integers as they are ordered in the database */
 	public List<Integer> getGCDAudit() throws SQLException {
 		return getAllRows(GCD_TABLE);
 	}

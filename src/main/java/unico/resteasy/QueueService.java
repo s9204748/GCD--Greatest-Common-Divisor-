@@ -17,7 +17,10 @@ import javax.naming.InitialContext;
 import javax.naming.NamingException;
 
 /**
- * JMS Service
+ * JMS Service, specifically using the default JBoss AS7 test queue (to avoid changes to
+ * OOTB installation. The core JMS components are referenced as single member variables 
+ * per instance of this service. The service <b>should not be</b> shared between clients 
+ * for that reason; rather new instances created.
  * @author K. Flattery
  */
 public class QueueService {
@@ -43,7 +46,7 @@ public class QueueService {
 
 	private MessageProducer getProducer() throws NamingException, JMSException {
 		if (producer == null) {
-				producer = createSession().createProducer(queue);			
+			producer = createSession().createProducer(queue);
 		}
 		return producer;
 	}
@@ -63,20 +66,28 @@ public class QueueService {
 		return connection;
 	}
 	
+	/**
+	 * @param value to be pushed to queue (stack)
+	 * @throws NamingException unresolved queue name
+	 * @throws JMSException problem with queue
+	 */
 	public void push(String value) throws NamingException, JMSException {
-		connection = getConnection();
-		connection.start();
-		session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
-		TextMessage message = session.createTextMessage(value);
-		// publish the message to the defined Queue
-		getProducer().send(message);
-		closeConnection();
+		try{ 
+			connection = getConnection();
+			connection.start();
+			session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
+			TextMessage message = session.createTextMessage(value);
+			// publish the message to the defined Queue
+			getProducer().send(message);
+		} finally {
+			closeResources();
+		}
 	}
 
 	/**
 	 * @return value at top of queue
-	 * @throws NamingException 
-	 * @throws JMSException 
+	 * @throws NamingException unresolved queue name
+	 * @throws JMSException problem with queue 
 	 */
 	public int pop() throws JMSException, NamingException {
 		try {			
@@ -94,11 +105,11 @@ public class QueueService {
 			}
 			return NO_MESSAGES;
 		} finally {
-			closeConnection();
+			closeResources();
 		}
 	}
 	
-	private void closeConnection() throws JMSException {
+	private void closeResources() throws JMSException {
 		if (producer != null) {
 			producer.close();
 			producer = null;
@@ -106,6 +117,10 @@ public class QueueService {
 		if (connection != null) {
 			connection.close();
 			connection = null;
-		}		
+		}	
+		if (session !=null) {
+			session.close();
+			session = null;
+		}
 	}
 }
