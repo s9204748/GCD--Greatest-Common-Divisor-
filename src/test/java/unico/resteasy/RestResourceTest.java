@@ -15,15 +15,6 @@ import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.core.util.MultivaluedMapImpl;
-//import javax.ws.rs.client.Client;
-//import org.jboss.resteasy.client.ClientRequest;
-//import org.jboss.resteasy.client.ClientResponse;
-/*import org.jboss.resteasy.client.jaxrs.ResteasyClient;
-import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
-import org.jboss.resteasy.client.jaxrs.ResteasyWebTarget;
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.core.Form;
-import javax.ws.rs.core.Response;*/
 
 /**
  * Run this test against a container when application deployed <i>only</i>.
@@ -38,7 +29,7 @@ public class RestResourceTest {
 	@Test
 	public void testPush() throws Exception {
 		org.jboss.resteasy.client.ClientRequest request = 
-				new org.jboss.resteasy.client.ClientRequest(ROOT_URL + "users/push/1%3B;444");
+				new org.jboss.resteasy.client.ClientRequest(ROOT_URL + "push/1%3B;444");
 		//ClientRequest request = new ClientRequest(ROOT_URL + "push/2;1");
 		org.jboss.resteasy.client.ClientResponse<String> response = request.get(String.class);
 		String statusXML = response.getEntity();
@@ -50,16 +41,16 @@ public class RestResourceTest {
 	@Test
 	/*public void testFullQueueHistory() throws Exception {
 		ResteasyClient client = new ResteasyClientBuilder().build();
-		ResteasyWebTarget target = client.target(ROOT_URL + "users/push/list");
+		ResteasyWebTarget target = client.target(ROOT_URL + "push/list");
 		Response response = target.request(MediaType.APPLICATION_JSON).get();
 		String value = response.readEntity(String.class);
 		assertJSON(value);
 	}*/
 	
 	public void testFullQueueHistory() throws Exception {
-		//ClientRequest request = new ClientRequest(ROOT_URL + "users/push/list");		
+		//ClientRequest request = new ClientRequest(ROOT_URL + "push/list");		
 		com.sun.jersey.api.client.Client client = com.sun.jersey.api.client.Client.create();		 
-		WebResource webResource = client.resource(ROOT_URL + "users/push/list");
+		WebResource webResource = client.resource(ROOT_URL + "push/list");
 
 	     MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
 	     queryParams.add("json", "js"); //set parametes for request
@@ -77,18 +68,14 @@ public class RestResourceTest {
 		}
 		JSONObject jsonOutput = (JSONObject) JSONSerializer.toJSON( response.getEntity(String.class));
 		String output = "";
-		Assert.assertTrue("testing JSON format", output.charAt(0) == '[');
-		
-		/*ClientResponse<List<Integer>> response = request.get() ;
-		List<Integer> allEntries = response.getEntity();
-		Assert.assertTrue("", allEntries.size() > 0);*/
+		assertJSON(output);
 	}
 	
 	public void testAllQueueHistory() throws Exception {
 		Client client = Client.create();
 		WebResource webResource2 = client
 				.resource(ROOT_URL
-						+ "users/push/list");
+						+ "push/list");
 		//?json=%7B'selection':%7B'includeAlerts':'true','selectionType':'registered','selectionMatch':'','isTheEvent':'true','includeRuntime':'true'%7D%7D");
 		ClientResponse response2 = webResource2.accept(MediaType.APPLICATION_JSON).get(ClientResponse.class);
 		if (response2.getStatus() != 200 && response2.getStatus() != 406) {

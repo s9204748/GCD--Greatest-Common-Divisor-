@@ -1,7 +1,5 @@
 package unico.resteasy;
 
-import java.io.StringWriter;
-import java.util.Iterator;
 import java.util.List;
 import java.util.StringTokenizer;
 import java.util.logging.Level;
@@ -16,9 +14,12 @@ import javax.ws.rs.core.Response;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
-import org.json.simple.JSONValue;
 
-@Path("/users")
+/**
+ * Implementation for RestFUL interface
+ * @author Asus i7
+ */
+@Path("/")
 @Produces(MediaType.APPLICATION_XML)
 public class RestResource {
 	
@@ -38,8 +39,6 @@ public class RestResource {
 			JSONArray array = new JSONArray();
 			array.addAll(list);
 			obj.put("queueElements", array);			
-			//StringWriter out = new StringWriter();
-			//JSONValue.writeJSONString(list, out);
 			String jsonText = obj.toJSONString();//out.toString();
 			LOGGER.log(Level.INFO, "jsonText: " + jsonText);
 			return Response.ok(jsonText, MediaType.APPLICATION_JSON	).status(200)
