@@ -11,7 +11,7 @@
 	</servlet>
 	<servlet>
 		<servlet-name>SoapResource</servlet-name>
-		<servlet-class>unico.resteasy.SoapResource</servlet-class>
+		<servlet-class>unico.resteasy.SoapResourceImpl</servlet-class>
 	</servlet>
 	<servlet-mapping>
 		<servlet-name>Resteasy</servlet-name>
@@ -19,7 +19,7 @@
 	</servlet-mapping>
 	<servlet-mapping>
 		<servlet-name>SoapResource</servlet-name>
-		<url-pattern>/SoapResource</url-pattern>
+		<url-pattern>/*</url-pattern>
 	</servlet-mapping>
 	<context-param>
 		<param-name>resteasy.servlet.mapping.prefix</param-name>

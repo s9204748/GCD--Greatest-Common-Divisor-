@@ -85,7 +85,7 @@ public class DatabaseService {
 		ResultSet rS = connection.getMetaData().getTables(null, null, table, null);
 		boolean b = (rS.next() && rS.getString(3).equals(table));
 		connection.close();
-		LOGGER.info("tableExists: " + b);
+		LOGGER.finer("tableExists: " + b);
 		return b;
 	}
 

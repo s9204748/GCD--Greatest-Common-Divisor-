@@ -3,8 +3,6 @@ package unico.resteasy;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.ejb.Singleton;
-import javax.ejb.Startup;
 import javax.jms.Connection;
 import javax.jms.ConnectionFactory;
 import javax.jms.JMSException;
@@ -32,22 +30,22 @@ public class QueueService {
 	private Queue queue;
 	private ConnectionFactory cf;
 	private Connection connection;
+	private MessageProducer producer;
 	
 	public QueueService() { // throws NamingException, JMSException {
 		try {
-			createProducer();
+			producer = getProducer();
 		} catch (Exception e) {
 			LOGGER.log(Level.SEVERE, e.getMessage());
 			throw new RuntimeException(e);
 		}
 	}
 
-	private MessageProducer createProducer() throws NamingException, JMSException {
-		try {
-			return createSession().createProducer(queue);
-		} finally {
-			closeConnection();
+	private MessageProducer getProducer() throws NamingException, JMSException {
+		if (producer == null) {
+				producer = createSession().createProducer(queue);			
 		}
+		return producer;
 	}
 	
 	private Session createSession() throws NamingException, JMSException {
@@ -71,7 +69,7 @@ public class QueueService {
 		session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
 		TextMessage message = session.createTextMessage(value);
 		// publish the message to the defined Queue
-		createProducer().send(message);
+		getProducer().send(message);
 		closeConnection();
 	}
 
@@ -101,6 +99,10 @@ public class QueueService {
 	}
 	
 	private void closeConnection() throws JMSException {
+		if (producer != null) {
+			producer.close();
+			producer = null;
+		}			
 		if (connection != null) {
 			connection.close();
 			connection = null;
