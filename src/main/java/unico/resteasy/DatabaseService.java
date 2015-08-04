@@ -26,14 +26,17 @@ import javax.sql.DataSource;
  * <b>Note:</b>Primary keys are <i>not</i> used due to the specific nature of the business logic, 
  * ie order is kept by insertion and is never altered from the first in last out workflow.
  * 
- * <li>Due to the simplistic nature of the implementation, it was decided an ORM like Hibernate 
+ * <li>Due to the simplistic nature of the requirements, it was decided an ORM like Hibernate 
  * or Spring wasn't required.
+ * 
+ * <li>The #java.util.List implementation is ordered and allows duplicates.
  * @author K. Flattery
  */
 @Startup
 @Singleton
 public class DatabaseService {
 
+	private static final String DATASOURCES_JNDI = "java:jboss/datasources/ExampleDS";
 	public final static String TABLE = "QUEUE_HISTORY";
 	public final static String GCD_TABLE = "GCD_TABLE";
 	//private static long primaryKey = 0L;
@@ -41,12 +44,12 @@ public class DatabaseService {
 	private final static Logger LOGGER = Logger.getLogger(DatabaseService.class.getName());
 	
 	/**
-	 * Constructor; creates tables if they aren't in existance.
+	 * Constructor; creates tables if they aren't in existence.
 	 */
 	public DatabaseService() {
 		try {
 			Context ic = new InitialContext();
-			cf = (DataSource) ic.lookup("java:jboss/datasources/ExampleDS");	
+			cf = (DataSource) ic.lookup(DATASOURCES_JNDI);	
 			if (!tableExists(TABLE)) {
 				createTable(TABLE);
 			}
@@ -84,18 +87,35 @@ public class DatabaseService {
 	 * @throws SQLException for any reason table cannot be created.
 	 */
 	private void createTable(String table) throws SQLException {
-		Connection connection = cf.getConnection();
-		Statement s = connection.createStatement();
-		s.executeUpdate("create table " + table + " (value number(3)) ");
-		connection.close();
-		LOGGER.info("Created " + table + " in database.");
+		Connection connection = null;
+		try {
+			connection = cf.getConnection();
+			Statement s = connection.createStatement();
+			s.executeUpdate("create table " + table + " (value number(3)) ");
+			connection.close();
+			LOGGER.info("Created " + table + " in database.");
+		} finally {
+			closeResources(connection);
+		}
+	}
+
+	private void closeResources(Connection connection) throws SQLException {
+		if (connection == null) {
+			connection.close();
+		}
 	}
 
 	private boolean tableExists(String table) throws SQLException {
-		Connection connection = cf.getConnection();
-		ResultSet rS = connection.getMetaData().getTables(null, null, table, null);
-		boolean b = (rS.next() && rS.getString(3).equals(table));
-		connection.close();
+		Connection connection = null;
+		boolean b = false;
+		try {
+			connection = cf.getConnection();
+
+			ResultSet rS = connection.getMetaData().getTables(null, null, table, null);
+			b = (rS.next() && rS.getString(3).equals(table));
+		} finally {
+			closeResources(connection);
+		}
 		LOGGER.finer("tableExists: " + b);
 		return b;
 	}
@@ -110,21 +130,35 @@ public class DatabaseService {
 		return getAllRows(GCD_TABLE);
 	}
 	
+	/**
+	 * @param table specific database table name
+	 * @return Integer list (ordered collection allowing duplicates)representation 
+	 * of the table data.
+	 * @throws SQLException
+	 */
 	private List<Integer> getAllRows(String table) throws SQLException {
-		Connection connection = cf.getConnection();
-		if (!tableExists(table)) {
-			throw new SQLException(table + " does not exist!");
+		Connection connection = null;
+		List<Integer> list = null;
+		try {
+			connection = cf.getConnection();
+			if (!tableExists(table)) {
+				throw new SQLException(table + " does not exist!");
+			}
+			Statement s = connection.createStatement();
+			ResultSet rS = s.executeQuery("select value from " + table);
+			list = new ArrayList<Integer>();
+			while (rS.next()) {
+				list.add(new Integer(rS.getInt(1)));
+			}
+		} finally {
+			closeResources(connection);
 		}
-		Statement s = connection.createStatement();
-		ResultSet rS = s.executeQuery("select value from " + table);
-		List<Integer> list = new ArrayList<Integer>();
-		while (rS.next()) {
-			list.add(new Integer(rS.getInt(1)));
-		}
-		connection.close();
 		return list;
 	}
 
+	/**
+	 * @param k adding integer value to {@link #GCD_TABLE} for historical, ordered retrieval.
+	 */
 	public void addGCD(int k) {
 		add(String.valueOf(k), GCD_TABLE);		
 	}
