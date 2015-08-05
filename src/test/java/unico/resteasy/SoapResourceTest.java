@@ -23,7 +23,7 @@ public class SoapResourceTest {
 
 	private SoapResource client;
 	
-	private final String URL = "http://localhost:8080/resteasy-queue/SoapResource";
+	private final static String URL = "http://localhost:8080/resteasy-queue/SoapResource";
 
 	@Before
 	public void setUp() throws Exception {
@@ -31,7 +31,9 @@ public class SoapResourceTest {
 	}
 
 	@Test
-	public void testGCD() throws MalformedURLException {
+	public void testGCD() throws Exception {
+		//prime the queue in case empty
+		RestResourceTest.pushValues(20,16);
 		int i = client.gcd();
 		assertFalse("No messages in Queue to work out GCD", i == -7);
 		assertTrue("GCD should be postive value ("+i+")", i >= 0);
@@ -61,7 +63,7 @@ public class SoapResourceTest {
 		assertTrue("GCD(16,20) should be 4 but was " + findGCD, findGCD == 4);
 	}
 	
-	private SoapResource createClient() {
+	static SoapResource createClient() {
 		JaxWsProxyFactoryBean factory = new JaxWsProxyFactoryBean();
 		factory.getInInterceptors().add(new LoggingInInterceptor());
 		factory.getOutInterceptors().add(new LoggingOutInterceptor());

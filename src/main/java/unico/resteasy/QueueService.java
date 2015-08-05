@@ -1,5 +1,6 @@
 package unico.resteasy;
 
+import java.util.Enumeration;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -10,6 +11,7 @@ import javax.jms.Message;
 import javax.jms.MessageConsumer;
 import javax.jms.MessageProducer;
 import javax.jms.Queue;
+import javax.jms.QueueBrowser;
 import javax.jms.Session;
 import javax.jms.TextMessage;
 import javax.naming.Context;
@@ -122,6 +124,20 @@ public class QueueService {
 		this.closeResources();
 	}
 
+	public int getQueueSize() throws JMSException, NamingException {
+		QueueBrowser queueBrowser = createSession().createBrowser(queue);
+		connection.start();
+		Enumeration e = queueBrowser.getEnumeration();
+        int numMsgs = 0;
+        // count number of messages
+        while (e.hasMoreElements()) {
+            e.nextElement();
+            numMsgs++;
+        }
+        this.closeResources();
+        LOGGER.log(Level.INFO, "Queue size: " + numMsgs);
+		return numMsgs;		
+	}
 	
 	private void closeResources() throws JMSException {
 		if (producer != null) {

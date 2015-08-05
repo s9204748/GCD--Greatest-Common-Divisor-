@@ -33,50 +33,25 @@ public class RestResourceTest {
 
 	@Test
 	public void testPush() throws Exception {
-		org.jboss.resteasy.client.ClientRequest request = new org.jboss.resteasy.client.ClientRequest(ROOT_URL
-				+ "push/1%3B;444");
-		// ClientRequest request = new ClientRequest(ROOT_URL + "push/2;1");
-		org.jboss.resteasy.client.ClientResponse<String> response = request.get(String.class);
+		org.jboss.resteasy.client.ClientResponse<String> response = pushValues(20,16);
 		String statusXML = response.getEntity();
 		Assert.assertTrue("URL didn't resolve", statusXML.indexOf("is not available") < 0);
 		Assert.assertNotNull(statusXML);
 		// Assert.assertTrue("Checking for success",
 		// statusXML.indexOf("<status>success") >= 0);
+		SoapResource soapResource = SoapResourceTest.createClient();
+		Assert.assertTrue("gcd(16,20)=4", soapResource.gcd() == 4);
 	}
 
-	/*
-	 * public void testFullQueueHistory() throws Exception { ResteasyClient
-	 * client = new ResteasyClientBuilder().build(); ResteasyWebTarget target =
-	 * client.target(ROOT_URL + "push/list"); Response response =
-	 * target.request(MediaType.APPLICATION_JSON).get(); String value =
-	 * response.readEntity(String.class); assertJSON(value); }
-	 */
-
-	public void testFullQueueHistory() throws Exception {
-		// ClientRequest request = new ClientRequest(ROOT_URL + "push/list");
-		com.sun.jersey.api.client.Client client = com.sun.jersey.api.client.Client.create();
-		WebResource webResource = client.resource(ROOT_URL + "list");
-
-		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
-		queryParams.add("json", "js"); // set parametes for request
-		// .queryParams(queryParams) .header("Authorization", appKey)
-		String appKey = "Bearer " + 7; // appKey is unique number
-
-		webResource.setProperty("Content-Type", "application/json;charset=UTF-8");
-
-		com.sun.jersey.api.client.ClientResponse response = webResource.accept(MediaType.APPLICATION_JSON)
-				.header("Content-Type", "application/json;charset=UTF-8")
-				.get(com.sun.jersey.api.client.ClientResponse.class);
-		if (response.getStatus() != 200 && response.getStatus() != 406) {
-			throw new RuntimeException("Failed : HTTP error code : " + response.getStatus());
-		}
-		JSONObject jsonOutput = (JSONObject) JSONSerializer.toJSON(response.getEntity(String.class));
-		String output = "";
-		assertJSON(output);
+	static org.jboss.resteasy.client.ClientResponse<String> pushValues(int i, int j) throws Exception {
+		org.jboss.resteasy.client.ClientRequest request = 
+				new org.jboss.resteasy.client.ClientRequest(ROOT_URL + 
+						"push/" + String.valueOf(i) + ","+String.valueOf(j));
+		return request.get(String.class);		
 	}
-
+	
 	@Test
-	public void testname() throws Exception {
+	public void testFullQueueHistory() throws Exception {
 		// The request also includes the userip parameter which provides the end
 		// user's IP address. Doing so will help distinguish this legitimate
 		// server-side traffic from traffic which doesn't come from an end-user.
@@ -94,36 +69,14 @@ public class RestResourceTest {
 		assertJSON(jsonString);
 	}
 
-	public void testAllQueueHistory() throws Exception {
-		Client client = Client.create();
-		WebResource webResource2 = client.resource(ROOT_URL + "push/list");
-		// ?json=%7B'selection':%7B'includeAlerts':'true','selectionType':'registered','selectionMatch':'','isTheEvent':'true','includeRuntime':'true'%7D%7D");
-		ClientResponse response2 = webResource2.accept(MediaType.APPLICATION_JSON).get(ClientResponse.class);
-		if (response2.getStatus() != 200 && response2.getStatus() != 406) {
-			throw new RuntimeException("Failed : HTTP error code : " + response2.getStatus());
-		}
-		String output2 = response2.getEntity(String.class);
-		assertJSON(output2);
-	}
-
 	private void assertJSON(String output2) {
-		Assert.assertTrue("testing start JSON format", output2.charAt(0) == '{');
+		Assert.assertTrue("testing start JSON format", output2.startsWith("{"));
+		Assert.assertTrue("testing start JSON format", output2.endsWith("}"));		
 		String regex = "\\{:[a-zA-Z0-9]+\":\\[[a-zA-Z0-9]*";
 		Pattern p = Pattern.compile(regex);
-		Assert.assertTrue("testing full JSON format", p.matcher(output2).matches());
+		//Assert.assertTrue("testing full JSON format", p.matcher(output2).matches());
 	}
 
-	/*
-	 * @Test public void testMyResource() { ClientConfig config = new
-	 * DefaultClientConfig();
-	 * config.getClasses().add(JacksonJaxbJsonProvider.class);
-	 * config.getFeatures().put(JSONConfiguration.FEATURE_POJO_MAPPING,
-	 * Boolean.TRUE); Client c = Client.create(config); WebResource resource =
-	 * c.resource(ROOT_URL); ClientResponse response =
-	 * resource.path("/users/push/list")
-	 * .accept("application/json").get(ClientResponse.class); String s =
-	 * response.getEntity(String.class); assertJSON(s); }
-	 */
 	// TODO: find Apache commons implementation which seds the whole URL at once
 	/*
 	 * private String escape(String s) { if (s.equals("=")) { return "%3D"; }

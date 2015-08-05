@@ -34,11 +34,13 @@ public class SoapResourceImpl implements SoapResource {
     public Integer gcd() {
     	int i = -1, j = -1;
 		try {
-			queueService = new QueueService();
+			queueService = new QueueService();			
 			i = queueService.pop();
 			j = queueService.pop();
-			Assert.isTrue(i >= 0);
-			Assert.isTrue(j >= 0);
+			if (queueService.getQueueSize() >= 2) {
+				Assert.isTrue(i >= 0);
+				Assert.isTrue(j >= 0);
+			}
 			int k = findGCD(i, j);
 			if (k == QueueService.NO_MESSAGES) {
 				LOGGER.log(Level.WARNING, "No messages on queue to calculate GCD!");
