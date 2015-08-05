@@ -109,6 +109,20 @@ public class QueueService {
 		}
 	}
 	
+	public void deleteAllMessagesFromQueue() throws JMSException, NamingException {
+		MessageConsumer consumer = createSession().createConsumer(queue);
+		connection.start();
+		Message message = null;
+		do {
+			message = consumer.receiveNoWait();
+			if (message != null)
+				message.acknowledge();
+
+		} while (message != null);
+		this.closeResources();
+	}
+
+	
 	private void closeResources() throws JMSException {
 		if (producer != null) {
 			producer.close();

@@ -111,7 +111,6 @@ public class DatabaseService {
 		boolean b = false;
 		try {
 			connection = cf.getConnection();
-
 			ResultSet rS = connection.getMetaData().getTables(null, null, table, null);
 			b = (rS.next() && rS.getString(3).equals(table));
 		} finally {
@@ -167,5 +166,18 @@ public class DatabaseService {
 			e.printStackTrace();
 			LOGGER.severe(e.getMessage());
 		}		
+	}
+
+	public void dropTable(String table) throws SQLException {
+		Connection connection = null;
+		try {
+			connection = cf.getConnection();
+			Statement s = connection.createStatement();
+			s.executeUpdate("drop table " + table);
+			connection.close();
+			LOGGER.info("Dropped " + table + " in database.");
+		} finally {
+			closeResources(connection);
+		}
 	}
 }

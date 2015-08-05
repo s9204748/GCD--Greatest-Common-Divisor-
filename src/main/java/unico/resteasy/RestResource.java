@@ -6,6 +6,7 @@ import java.util.StringTokenizer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.jms.JMSException;
 import javax.naming.NamingException;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -68,13 +69,13 @@ public class RestResource {
 				queueService.push(value);				
 			} catch (Exception e) {
 				e.printStackTrace();
-				return Response.ok("<status>failure with JMS: "+e.getMessage() +"</status>").build();
+				return renderResponse("failure with JMS", e);
 			}
 			try {
 				getDatabaseService().add(value, DatabaseService.TABLE);
 			} catch (Exception e) {
 				e.printStackTrace();
-				return Response.ok("<status>failure with JMS: "+e.getMessage() +"</status>").build();
+				return renderResponse("failure with DataSource", e);
 			} 
 		}		
 		LOGGER.log(Level.INFO, "pushed "+tokenCount+" values onto queue\n");
@@ -86,5 +87,23 @@ public class RestResource {
 			databaseService = new DatabaseService();
 		}
 		return databaseService;
+	}
+	
+	private Response renderResponse(String s, Exception e) {
+		StringBuffer sB = new StringBuffer().append("<status>").append(s);
+		if (e != null) {
+			sB.append(": "+e.getMessage());
+		}
+		sB.append("</status>");
+		return Response.ok(sB.toString()).build();
+	}
+	
+	@Path("/drop")
+	@GET
+	public Response dropTables() throws SQLException, NamingException, JMSException {
+		getDatabaseService().dropTable(DatabaseService.GCD_TABLE);
+		getDatabaseService().dropTable(DatabaseService.TABLE);
+		queueService.deleteAllMessagesFromQueue();
+		return renderResponse("table dropped", null);
 	}
 }

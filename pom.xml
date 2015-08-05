@@ -6,7 +6,14 @@
 	<version>0.1</version>
 	<packaging>war</packaging>
 	<name>resteasy-JMS Maven Webapp</name>
-
+<repositories>
+   <repository>
+        <id>maven-db-plugin-repo</id>
+        <name>maven db plugin repository</name>
+        <url>http://maven-db-plugin.googlecode.com/svn/maven/repo</url>
+        <layout>default</layout>
+    </repository>
+    </repositories>
 	<properties>
 		<!-- Explicitly declaring the source encoding eliminates the following 
 			message: -->
@@ -79,6 +86,7 @@
 					</modules>
 				</configuration>
 			</plugin>
+			
 		</plugins>
 	</build>
 
