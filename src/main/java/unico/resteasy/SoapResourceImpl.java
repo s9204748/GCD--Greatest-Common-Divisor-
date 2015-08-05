@@ -4,6 +4,7 @@ import javax.jws.WebMethod;
 import javax.jws.WebResult;
 import javax.jws.WebService;
 import javax.jws.soap.SOAPBinding;
+import javax.naming.NamingException;
 
 import org.springframework.util.Assert;
 
@@ -47,6 +48,7 @@ public class SoapResourceImpl implements SoapResource {
 			}
 			return new Integer(k);			
 		} catch (Exception e) {
+			e.printStackTrace();
 			LOGGER.log(Level.SEVERE, "" + e.getMessage());
 			return new Integer(-2);
 		}        		
@@ -64,13 +66,13 @@ public class SoapResourceImpl implements SoapResource {
 		return findGCD(number2, number1 % number2);
 	}    	   
 	
-	public List<Integer> gcdList() throws SQLException {
+	public List<Integer> gcdList() throws SQLException, NamingException {
 		List<Integer> gcdAudit = getDatabaseService().getGCDAudit();
 		LOGGER.log(Level.INFO, "GCD audit list: " + gcdAudit);
 		return gcdAudit;
 	}
 	
-	public int gcdSum()  throws SQLException {
+	public int gcdSum()  throws SQLException, NamingException {
 		List<Integer> gcdAudit = getDatabaseService().getGCDAudit();
 		int sum = 0;
 		for (Iterator iterator = gcdAudit.iterator(); iterator.hasNext();) {
@@ -84,8 +86,10 @@ public class SoapResourceImpl implements SoapResource {
 	 * Allows for member instance to be shared and avoid creation in contructor which
 	 * makes unit testing non WS methods difficult outside container.
 	 * @return {@link DatabaseService} instance.
+	 * @throws SQLException 
+	 * @throws NamingException 
 	 */
-	private DatabaseService getDatabaseService() {
+	private DatabaseService getDatabaseService() throws NamingException, SQLException {
 		if (this.databaseService == null) {
 			this.databaseService = new DatabaseService();
 		}

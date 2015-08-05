@@ -14,7 +14,10 @@ import javax.ejb.Singleton;
 import javax.ejb.Startup;
 import javax.naming.Context;
 import javax.naming.InitialContext;
+import javax.naming.NamingException;
 import javax.sql.DataSource;
+
+import org.apache.log4j.Level;
 
 /**
  * <li>ORM (Database) Service. Very simple, one table, one column inserts so 
@@ -45,29 +48,29 @@ public class DatabaseService {
 	
 	/**
 	 * Constructor; creates tables if they aren't in existence.
+	 * @throws NamingException 
+	 * @throws SQLException 
 	 */
-	public DatabaseService() {
-		try {
-			Context ic = new InitialContext();
-			cf = (DataSource) ic.lookup(DATASOURCES_JNDI);	
-			if (!tableExists(TABLE)) {
-				createTable(TABLE);
-			}
-			if (!tableExists(GCD_TABLE)) {
-				createTable(GCD_TABLE);
-			}			
-		} catch (Exception e) {
-			throw new RuntimeException(e);
+	public DatabaseService() throws NamingException, SQLException {
+		Context ic = new InitialContext();
+		cf = (DataSource) ic.lookup(DATASOURCES_JNDI);
+		if (!tableExists(TABLE)) {
+			createTable(TABLE);
+		}
+		if (!tableExists(GCD_TABLE)) {
+			createTable(GCD_TABLE);
 		}
 	}
 
 	/**
 	 * @param value to be added to persistent store with incremented priamry key.
 	 * @return boolean result from {@link PreparedStatement#execute()} ie true <i>iff</i> success.
+	 * @throws SQLException 
 	 */
-	public boolean add(String value, String table) {
+	public boolean add(String value, String table) throws SQLException {
+		Connection connection = null;
 		try {
-			Connection connection = cf.getConnection();
+			connection = cf.getConnection();
 			PreparedStatement pS = connection.prepareStatement("insert into " + 
 			table + " (value) values (?)");
 			// pS.setLong(0, primaryKey++);
@@ -75,10 +78,8 @@ public class DatabaseService {
 			boolean b = pS.execute();
 			connection.close();
 			return b;
-		} catch (SQLException e) {
-			throw new RuntimeException(e);
 		} finally {
-			//connection.close(); //TODO update to resource to avoid explicit closure
+			closeResources(connection);
 		}
 	}
 
@@ -100,7 +101,7 @@ public class DatabaseService {
 	}
 
 	private void closeResources(Connection connection) throws SQLException {
-		if (connection == null) {
+		if (connection != null) {
 			connection.close();
 		}
 	}
@@ -160,6 +161,11 @@ public class DatabaseService {
 	 * @param k adding integer value to {@link #GCD_TABLE} for historical, ordered retrieval.
 	 */
 	public void addGCD(int k) {
-		add(String.valueOf(k), GCD_TABLE);		
+		try {
+			add(String.valueOf(k), GCD_TABLE);
+		} catch (SQLException e) {
+			e.printStackTrace();
+			LOGGER.severe(e.getMessage());
+		}		
 	}
 }
